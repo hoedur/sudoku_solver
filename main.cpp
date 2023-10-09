@@ -4,7 +4,7 @@
 #include <filesystem>
 #include <iostream>
 #include <vector>
-#include <unordered_set>
+#include <set>
 
 class Board {
 public:
@@ -20,12 +20,11 @@ public:
         }
     };
 
-    // XXX unsigned int!
-    std::unordered_set<int> row_by_row_index(unsigned int idx) {
+    std::set<unsigned int> row_by_row_index(unsigned int idx) {
         if (idx >= Board::N_ROWS)
              throw OutOfBoundsException();
 
-        std::unordered_set<int> result(Board::N_COLS);
+        std::set<unsigned int> result;
         int first = idx * Board::N_ROWS;
         int last = first + Board::N_COLS - 1;
 
@@ -35,11 +34,11 @@ public:
         return result;
     }
 
-    std::unordered_set<unsigned int> col_by_col_index(unsigned int idx) {
+    std::set<unsigned int> col_by_col_index(unsigned int idx) {
         if (idx > Board::N_ROWS)
             throw OutOfBoundsException();
 
-        std::unordered_set<unsigned int> result(Board::N_ROWS);
+        std::set<unsigned int> result;
         int first = idx;
         int last = idx + Board::N_COLS * (Board::N_ROWS - 1);
         for (int i = first; i <= last; i += Board::N_ROWS)
@@ -48,12 +47,12 @@ public:
         return result;
     }
 
-    std::unordered_set<unsigned int> block_by_block_index (unsigned int idx) {
-        std::unordered_set<unsigned int> result;
-        int first_row = (idx / Board::BLOCK_ROWS) * (Board::BLOCK_ROWS);
-        int last_row = first_row + Board::BLOCK_ROWS - 1;
-        int first_col = (idx % Board::BLOCK_COLS) * Board::BLOCK_COLS;
-        int last_col = first_col + Board::BLOCK_COLS - 1;
+    std::set<unsigned int> block_by_block_index (unsigned int idx) {
+        std::set<unsigned int> result;
+        int first_row = (idx / Board::N_BLOCK_ROWS) * (Board::N_BLOCK_ROWS);
+        int last_row = first_row + Board::N_BLOCK_ROWS - 1;
+        int first_col = (idx % Board::N_BLOCK_COLS) * Board::N_BLOCK_COLS;
+        int last_col = first_col + Board::N_BLOCK_COLS - 1;
 
         for (int i = first_row; i <= last_row; ++i) {
             for (int j = first_col; j <= last_col; ++j) {
@@ -62,6 +61,30 @@ public:
         }
 
         return result;
+    }
+
+    unsigned int index_to_row(unsigned int idx)
+    {
+        if (idx > Board::N_ELEMENTS)
+            throw OutOfBoundsException();
+
+        return idx / Board::N_COLS;
+    }
+
+    unsigned int index_to_col(unsigned int idx)
+    {
+        if (idx > Board::N_ELEMENTS)
+            throw OutOfBoundsException();
+
+        return idx % Board::N_ROWS;
+    }
+
+    unsigned int index_to_block(unsigned int idx)
+    {
+        if (idx > Board::N_ELEMENTS)
+            throw OutOfBoundsException();
+
+        return index_to_col(idx) + Board::N_BLOCK_ROWS * (index_to_row(idx) % Board::N_BLOCK_ROWS);
     }
 
     bool row_solved(unsigned int row_idx) {
@@ -96,25 +119,24 @@ public:
         }
     }
 
-    std::unordered_set<unsigned int> missing_numbers(unsigned int idx)
+    std::set<unsigned int> missing_numbers(unsigned int idx)
     {
-        std::unordered_set<unsigned int> result;
+        std::set<unsigned int> result;
 
-        // XXX Bug: we access via row index, not via element index, so this results in an exception
-        auto row = row_by_row_index(idx);
+        auto row = row_by_row_index(index_to_row(idx));
         for (unsigned int i = 0; i < Board::N_ROWS; ++i) {
             if (!row.contains(i)) {
                 result.insert(i);
             }
         }
 
-        auto col = col_by_col_index(idx);
+        auto col = col_by_col_index(index_to_col(idx));
         for (unsigned int i = 0; i < Board::N_COLS; ++i) {
             if (!col.contains(i))
                 result.insert(i);
         }
 
-        auto block = block_by_block_index(idx);
+        auto block = block_by_block_index(index_to_block(idx));
         for (unsigned int i = 0; i < Board::N_BLOCK_ELEMENTS; ++i) {
             if (!col.contains(i))
                 result.insert(i);
@@ -129,8 +151,12 @@ public:
             if (_content[idx] == Board::EMPTY_FIELD) {
                 std::cout << "empty field at index " << idx << '\n';
                 auto missing = missing_numbers(idx);
-                for (auto it = missing.begin(); it != missing.end(); ++it)
-                    std::cout << "asdf";
+
+                std::cout << missing.size() << " numbers are missing: ";
+                for (auto it = missing.begin(); it != missing.end(); ++it) {
+                    std::cout << *it << ' ';
+                }
+                std::cout << '\n';
             }
         }
 
@@ -140,8 +166,9 @@ public:
     static const unsigned int EMPTY_FIELD;
     static const unsigned int N_ROWS;
     static const unsigned int N_COLS;
-    static const unsigned int BLOCK_ROWS;
-    static const unsigned int BLOCK_COLS;
+    static const unsigned int N_ELEMENTS;
+    static const unsigned int N_BLOCK_ROWS;
+    static const unsigned int N_BLOCK_COLS;
     static const unsigned int N_BLOCK_ELEMENTS;
 
     std::vector<unsigned int> content;
@@ -150,9 +177,10 @@ public:
 const unsigned int Board::EMPTY_FIELD = 0;
 const unsigned int Board::N_ROWS = 9;
 const unsigned int Board::N_COLS = 9;
-const unsigned int Board::BLOCK_ROWS = 3;
-const unsigned int Board::BLOCK_COLS = 3;
-const unsigned int Board::N_BLOCK_ELEMENTS = Board::BLOCK_ROWS * Board::BLOCK_COLS;
+const unsigned int Board::N_ELEMENTS = Board::N_ROWS * N_COLS;
+const unsigned int Board::N_BLOCK_ROWS = 3;
+const unsigned int Board::N_BLOCK_COLS = 3;
+const unsigned int Board::N_BLOCK_ELEMENTS = Board::N_BLOCK_ROWS * Board::N_BLOCK_COLS;
 
 void error_exit(int e, std::string m = "")
 {
@@ -188,7 +216,7 @@ int main(int argc, char** argv)
     for (unsigned int col = 0; col < Board::N_COLS; ++col) {
         std::cout << "Col " << col << " solved: " << b.col_solved(col) << '\n';
     }
-    for (unsigned int block = 0; block < Board::BLOCK_COLS * Board::BLOCK_ROWS; ++block) {
+    for (unsigned int block = 0; block < Board::N_BLOCK_COLS * Board::N_BLOCK_ROWS; ++block) {
         std::cout << "Clu " << block << " solved: " << b.block_solved(block) << '\n';
     }
 

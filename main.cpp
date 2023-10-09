@@ -80,25 +80,6 @@ public:
             return true;
     }
 
-    bool _block_solved(unsigned int block) {
-        std::unordered_set<int> seen;
-        int first_row = (block / Board::BLOCK_ROWS) * (Board::BLOCK_ROWS);
-        int last_row = first_row + Board::BLOCK_ROWS - 1;
-        int first_col = (block % Board::BLOCK_COLS) * Board::BLOCK_COLS;
-        int last_col = first_col + Board::BLOCK_COLS - 1;
-
-        for (int i = first_row; i <= last_row; ++i) {
-            for (int j = first_col; j <= last_col; ++j) {
-                if (content[i * Board::N_ROWS + j] == Board::EMPTY_FIELD)
-                    return false;
-                if (seen.insert(content[i * Board::N_ROWS + j]).second == false)
-                    return false;
-            }
-        }
-
-        return true;
-    }
-
     bool block_solved(unsigned int block_idx) {
         auto block = block_by_block_index(block_idx);
         if (block.contains(Board::EMPTY_FIELD) || block.size() != Board::N_BLOCK_ELEMENTS)

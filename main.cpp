@@ -5,6 +5,7 @@
 #include <iostream>
 #include <vector>
 #include <set>
+#include <algorithm>
 
 class Board {
 public:
@@ -119,28 +120,19 @@ public:
         }
     }
 
+    // XXX Buggy!
     std::set<unsigned int> missing_numbers(unsigned int idx)
     {
-        std::set<unsigned int> result;
+        std::set<unsigned int> row_col, result;
 
         auto row = row_by_row_index(index_to_row(idx));
-        for (unsigned int i = 0; i < Board::N_ROWS; ++i) {
-            if (!row.contains(i)) {
-                result.insert(i);
-            }
-        }
-
         auto col = col_by_col_index(index_to_col(idx));
-        for (unsigned int i = 0; i < Board::N_COLS; ++i) {
-            if (!col.contains(i))
-                result.insert(i);
-        }
-
         auto block = block_by_block_index(index_to_block(idx));
-        for (unsigned int i = 0; i < Board::N_BLOCK_ELEMENTS; ++i) {
-            if (!col.contains(i))
-                result.insert(i);
-        }
+
+        std::set_intersection(row.begin(), row.end(), col.begin(), col.end(),
+            std::inserter(row_col, row_col.begin()));
+        std::set_intersection(row_col.begin(), row_col.end(), block.begin(), block.end(),
+            std::inserter(result, result.begin()));
 
         return result;
     }

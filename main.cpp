@@ -21,7 +21,7 @@ public:
     };
 
     // XXX unsigned int!
-    std::unordered_set<int> row_by_index(unsigned int idx) {
+    std::unordered_set<int> row_by_row_index(unsigned int idx) {
         if (idx >= Board::N_ROWS)
              throw OutOfBoundsException();
 
@@ -35,7 +35,7 @@ public:
         return result;
     }
 
-    std::unordered_set<unsigned int> col_by_index(unsigned int idx) {
+    std::unordered_set<unsigned int> col_by_col_index(unsigned int idx) {
         if (idx > Board::N_ROWS)
             throw OutOfBoundsException();
 
@@ -48,12 +48,12 @@ public:
         return result;
     }
 
-    std::unordered_set<unsigned int> cluster_by_index (unsigned int idx) {
+    std::unordered_set<unsigned int> block_by_block_index (unsigned int idx) {
         std::unordered_set<unsigned int> result;
-        int first_row = (idx / Board::CLUSTER_ROWS) * (Board::CLUSTER_ROWS);
-        int last_row = first_row + Board::CLUSTER_ROWS - 1;
-        int first_col = (idx % Board::CLUSTER_COLS) * Board::CLUSTER_COLS;
-        int last_col = first_col + Board::CLUSTER_COLS - 1;
+        int first_row = (idx / Board::BLOCK_ROWS) * (Board::BLOCK_ROWS);
+        int last_row = first_row + Board::BLOCK_ROWS - 1;
+        int first_col = (idx % Board::BLOCK_COLS) * Board::BLOCK_COLS;
+        int last_col = first_col + Board::BLOCK_COLS - 1;
 
         for (int i = first_row; i <= last_row; ++i) {
             for (int j = first_col; j <= last_col; ++j) {
@@ -65,7 +65,7 @@ public:
     }
 
     bool row_solved(unsigned int row_idx) {
-        auto row = row_by_index(row_idx);
+        auto row = row_by_row_index(row_idx);
         if (row.contains(Board::EMPTY_FIELD) || row.size() != Board::N_COLS)
             return false;
         else
@@ -73,19 +73,19 @@ public:
     }
 
     bool col_solved(unsigned int col_idx) {
-        auto col = col_by_index(col_idx);
+        auto col = col_by_col_index(col_idx);
         if (col.contains(Board::EMPTY_FIELD) || col.size() != Board::N_ROWS)
             return false;
         else
             return true;
     }
 
-    bool _cluster_solved(unsigned int cluster) {
+    bool _block_solved(unsigned int block) {
         std::unordered_set<int> seen;
-        int first_row = (cluster / Board::CLUSTER_ROWS) * (Board::CLUSTER_ROWS);
-        int last_row = first_row + Board::CLUSTER_ROWS - 1;
-        int first_col = (cluster % Board::CLUSTER_COLS) * Board::CLUSTER_COLS;
-        int last_col = first_col + Board::CLUSTER_COLS - 1;
+        int first_row = (block / Board::BLOCK_ROWS) * (Board::BLOCK_ROWS);
+        int last_row = first_row + Board::BLOCK_ROWS - 1;
+        int first_col = (block % Board::BLOCK_COLS) * Board::BLOCK_COLS;
+        int last_col = first_col + Board::BLOCK_COLS - 1;
 
         for (int i = first_row; i <= last_row; ++i) {
             for (int j = first_col; j <= last_col; ++j) {
@@ -99,9 +99,9 @@ public:
         return true;
     }
 
-    bool cluster_solved(unsigned int cluster_idx) {
-        auto cluster = cluster_by_index(cluster_idx);
-        if (cluster.contains(Board::EMPTY_FIELD) || cluster.size() != Board::N_CLUSTER_ELEMENTS)
+    bool block_solved(unsigned int block_idx) {
+        auto block = block_by_block_index(block_idx);
+        if (block.contains(Board::EMPTY_FIELD) || block.size() != Board::N_BLOCK_ELEMENTS)
             return false;
         else
             return true;
@@ -120,21 +120,21 @@ public:
         std::unordered_set<unsigned int> result;
 
         // XXX Bug: we access via row index, not via element index, so this results in an exception
-        auto row = row_by_index(idx);
+        auto row = row_by_row_index(idx);
         for (unsigned int i = 0; i < Board::N_ROWS; ++i) {
             if (!row.contains(i)) {
                 result.insert(i);
             }
         }
 
-        auto col = col_by_index(idx);
+        auto col = col_by_col_index(idx);
         for (unsigned int i = 0; i < Board::N_COLS; ++i) {
             if (!col.contains(i))
                 result.insert(i);
         }
 
-        auto cluster = cluster_by_index(idx);
-        for (unsigned int i = 0; i < Board::N_CLUSTER_ELEMENTS; ++i) {
+        auto block = block_by_block_index(idx);
+        for (unsigned int i = 0; i < Board::N_BLOCK_ELEMENTS; ++i) {
             if (!col.contains(i))
                 result.insert(i);
         }
@@ -159,9 +159,9 @@ public:
     static const unsigned int EMPTY_FIELD;
     static const unsigned int N_ROWS;
     static const unsigned int N_COLS;
-    static const unsigned int CLUSTER_ROWS;
-    static const unsigned int CLUSTER_COLS;
-    static const unsigned int N_CLUSTER_ELEMENTS;
+    static const unsigned int BLOCK_ROWS;
+    static const unsigned int BLOCK_COLS;
+    static const unsigned int N_BLOCK_ELEMENTS;
 
     std::vector<unsigned int> content;
 };
@@ -169,9 +169,9 @@ public:
 const unsigned int Board::EMPTY_FIELD = 0;
 const unsigned int Board::N_ROWS = 9;
 const unsigned int Board::N_COLS = 9;
-const unsigned int Board::CLUSTER_ROWS = 3;
-const unsigned int Board::CLUSTER_COLS = 3;
-const unsigned int Board::N_CLUSTER_ELEMENTS = Board::CLUSTER_ROWS * Board::CLUSTER_COLS;
+const unsigned int Board::BLOCK_ROWS = 3;
+const unsigned int Board::BLOCK_COLS = 3;
+const unsigned int Board::N_BLOCK_ELEMENTS = Board::BLOCK_ROWS * Board::BLOCK_COLS;
 
 void error_exit(int e, std::string m = "")
 {
@@ -207,12 +207,12 @@ int main(int argc, char** argv)
     for (unsigned int col = 0; col < Board::N_COLS; ++col) {
         std::cout << "Col " << col << " solved: " << b.col_solved(col) << '\n';
     }
-    for (unsigned int cluster = 0; cluster < Board::CLUSTER_COLS * Board::CLUSTER_ROWS; ++cluster) {
-        std::cout << "Clu " << cluster << " solved: " << b.cluster_solved(cluster) << '\n';
+    for (unsigned int block = 0; block < Board::BLOCK_COLS * Board::BLOCK_ROWS; ++block) {
+        std::cout << "Clu " << block << " solved: " << b.block_solved(block) << '\n';
     }
 
     try {
-        b.row_by_index(9);
+        b.row_by_row_index(9);
     } catch(std::exception& e) {
         std::cout << e.what() << std::endl;
     }

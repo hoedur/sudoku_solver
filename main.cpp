@@ -29,8 +29,11 @@ public:
         int first = idx * Board::N_ROWS;
         int last = first + Board::N_COLS - 1;
 
-        for (int i = first; i <= last; ++i)
+        for (int i = first; i <= last; ++i) {
+            if (content[i] == Board::EMPTY_FIELD)
+                continue;
             result.insert(content[i]);
+        }
 
         return result;
     }
@@ -42,8 +45,11 @@ public:
         std::set<unsigned int> result;
         int first = idx;
         int last = idx + Board::N_COLS * (Board::N_ROWS - 1);
-        for (int i = first; i <= last; i += Board::N_ROWS)
+        for (int i = first; i <= last; i += Board::N_ROWS) {
+            if (content[i] == Board::EMPTY_FIELD)
+                continue;
             result.insert(content[i]);
+        }
 
         return result;
     }
@@ -57,7 +63,10 @@ public:
 
         for (int i = first_row; i <= last_row; ++i) {
             for (int j = first_col; j <= last_col; ++j) {
-                result.insert(content[i * Board::N_ROWS + j]);
+                unsigned int val = content[i * Board::N_ROWS + j];
+                if (val == Board::EMPTY_FIELD)
+                    continue;
+                result.insert(val);
             }
         }
 

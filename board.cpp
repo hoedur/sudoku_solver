@@ -82,7 +82,8 @@ unsigned int Board::index_to_block(unsigned int idx)
     if (idx > Board::N_ELEMENTS)
         throw OutOfBoundsException();
 
-    return index_to_col(idx) + Board::N_BLOCK_ROWS * (index_to_row(idx) % Board::N_BLOCK_ROWS);
+    return (index_to_col(idx) / Board::N_BLOCK_COLS)
+           + Board::N_BLOCK_ROWS * (index_to_row(idx) / Board::N_BLOCK_ROWS);
 }
 
 bool Board::row_solved(unsigned int row_idx) {

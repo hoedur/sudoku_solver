@@ -47,6 +47,7 @@ public:
     static const unsigned int N_ROWS;
     static const unsigned int N_COLS;
     static const unsigned int N_ELEMENTS;
+    static const unsigned int N_BLOCKS;
     static const unsigned int N_BLOCK_ROWS;
     static const unsigned int N_BLOCK_COLS;
     static const unsigned int N_BLOCK_ELEMENTS;

@@ -205,3 +205,25 @@ TEST_CASE( "Accessing the contents of a solved board" ) {
         REQUIRE(b.index_to_block(80) == 8);
     }
 }
+
+TEST_CASE( "Check for solved rows, columns and blocks" ) {
+    std::vector<unsigned int> content_all_zeros = {};
+    for (int i = 0; i < 81; ++i) {
+        content_all_zeros.push_back(0);
+    }
+    Board b_all_zeros(content_all_zeros);
+
+    SECTION("Board with all zeros") {
+        for (int row_id = 0; row_id < Board::N_ROWS; ++row_id) {
+            REQUIRE(b_all_zeros.row_solved(row_id) == false);
+        }
+
+        for (int col_id = 0; col_id < Board::N_COLS; ++col_id) {
+            REQUIRE(b_all_zeros.col_solved(col_id) == false);
+        }
+
+        for (int block_id = 0; block_id < Board::N_BLOCKS; ++block_id) {
+            REQUIRE(b_all_zeros.block_solved(block_id) == false);
+        }
+    }
+}

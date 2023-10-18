@@ -172,6 +172,7 @@ const unsigned int Board::EMPTY_FIELD = 0;
 const unsigned int Board::N_ROWS = 9;
 const unsigned int Board::N_COLS = 9;
 const unsigned int Board::N_ELEMENTS = Board::N_ROWS * N_COLS;
+const unsigned int Board::N_BLOCKS = Board::N_ELEMENTS / Board::N_BLOCK_ELEMENTS;
 const unsigned int Board::N_BLOCK_ROWS = 3;
 const unsigned int Board::N_BLOCK_COLS = 3;
 const unsigned int Board::N_BLOCK_ELEMENTS = Board::N_BLOCK_ROWS * Board::N_BLOCK_COLS;
